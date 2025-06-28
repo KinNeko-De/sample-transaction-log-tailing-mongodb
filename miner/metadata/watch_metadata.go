@@ -82,9 +82,13 @@ func WatchChengeStreamEvents(ctx context.Context, collection *mongo.Collection, 
 			return fmt.Errorf("failed to decode change stream event: %w", err)
 		}
 		fmt.Printf("Change detected: %v\n", change)
-		_, err := CreateFileStoredEvent(change)
+		event, err := CreateFileStoredEvent(change)
 		if err != nil {
 			return fmt.Errorf("failed to create file stored event: %w", err)
+		}
+		err = PublishEvent(event)
+		if err != nil {
+			return fmt.Errorf("failed to publish event: %w", err)
 		}
 		resumeToken := changeStream.ResumeToken()
 		err = StoreResumeToken(ctx, resumeToken)
