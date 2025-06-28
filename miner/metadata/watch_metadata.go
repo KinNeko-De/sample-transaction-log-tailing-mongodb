@@ -29,6 +29,11 @@ func MiningFileMetadata(ctx context.Context) error {
 	}
 	defer disconnectMongoClient()
 
+	if err := CreateEventProducer(); err != nil {
+		return err
+	}
+	defer CloseEventProducer()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -74,11 +79,22 @@ func WatchChengeStreamEvents(ctx context.Context, collection *mongo.Collection, 
 	for changeStream.Next(ctx) {
 		var change bson.M
 		if err := changeStream.Decode(&change); err != nil {
-			return fmt.Errorf("failed to decode change stream event: %v", err)
+			return fmt.Errorf("failed to decode change stream event: %w", err)
 		}
 		fmt.Printf("Change detected: %v\n", change)
+		event, err := CreateFileStoredEvent(change)
+		if err != nil {
+			return fmt.Errorf("failed to create file stored event: %w", err)
+		}
+		err = PublishEvent(event)
+		if err != nil {
+			return fmt.Errorf("failed to publish event: %w", err)
+		}
 		resumeToken := changeStream.ResumeToken()
-		StoreResumeToken(ctx, resumeToken)
+		err = StoreResumeToken(ctx, resumeToken)
+		if err != nil {
+			return fmt.Errorf("failed to store resume token: %w", err)
+		}
 	}
 
 	if err := changeStream.Err(); err != nil {
