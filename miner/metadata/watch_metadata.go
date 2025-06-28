@@ -87,7 +87,10 @@ func WatchChengeStreamEvents(ctx context.Context, collection *mongo.Collection, 
 			return fmt.Errorf("failed to create file stored event: %v", err)
 		}
 		resumeToken := changeStream.ResumeToken()
-		StoreResumeToken(ctx, resumeToken)
+		err = StoreResumeToken(ctx, resumeToken)
+		if err != nil {
+			return fmt.Errorf("failed to store resume token: %w", err)
+		}
 	}
 
 	if err := changeStream.Err(); err != nil {
