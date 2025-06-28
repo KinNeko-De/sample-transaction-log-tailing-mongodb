@@ -2,7 +2,14 @@ module github.com/KinNeko-De/sample-transaction-log-tailing-mongodb/miner
 
 go 1.24.4
 
-require go.mongodb.org/mongo-driver v1.17.4
+replace github.com/kinneko-de/sample-transaction-log-tailing-mongodb/golang/store_file => ../golang/store_file
+
+require (
+	github.com/google/uuid v1.6.0
+	github.com/kinneko-de/sample-transaction-log-tailing-mongodb/golang/store_file v0.0.0-00010101000000-000000000000
+	go.mongodb.org/mongo-driver v1.17.4
+	google.golang.org/protobuf v1.36.6
+)
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
